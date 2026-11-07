@@ -1,7 +1,7 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { Stack } from 'expo-router/stack';
 import { useEffect, useRef, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, TextInput } from 'react-native';
+import { Alert, Platform, Pressable, StyleSheet, Text, TextInput } from 'react-native';
 
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -14,6 +14,8 @@ export default function MemoEditorScreen() {
   const [id, setId] = useState(params.id === 'new' ? undefined : params.id);
   const memo = useMemoById(id);
   const [text, setText] = useState(memo?.text ?? '');
+  // Web has no native dialog, so delete asks for a second tap instead.
+  const [armed, setArmed] = useState(false);
 
   // If the user clears a memo and leaves, delete it.
   const latest = useRef({ id, text });
@@ -29,6 +31,7 @@ export default function MemoEditorScreen() {
 
   function onChangeText(next: string) {
     setText(next);
+    setArmed(false);
     if (id) {
       updateMemo(id, next);
     } else if (next.trim()) {
@@ -36,17 +39,22 @@ export default function MemoEditorScreen() {
     }
   }
 
+  function remove() {
+    if (id) deleteMemo(id);
+    router.back();
+  }
+
   function confirmDelete() {
-    Alert.alert('메모를 삭제할까요?', '삭제한 메모는 되돌릴 수 없어요.', [
+    const title = '메모를 삭제할까요?';
+    const message = '삭제한 메모는 되돌릴 수 없어요.';
+    if (Platform.OS === 'web') {
+      if (armed) remove();
+      else setArmed(true);
+      return;
+    }
+    Alert.alert(title, message, [
       { text: '취소', style: 'cancel' },
-      {
-        text: '삭제',
-        style: 'destructive',
-        onPress: () => {
-          if (id) deleteMemo(id);
-          router.back();
-        },
-      },
+      { text: '삭제', style: 'destructive', onPress: remove },
     ]);
   }
 
@@ -57,8 +65,14 @@ export default function MemoEditorScreen() {
           title: memo ? formatDate(memo.updatedAt) : '',
           headerRight: () =>
             id ? (
-              <Pressable onPress={confirmDelete} hitSlop={12} accessibilityRole="button">
-                <Text style={{ color: theme.tint, fontSize: 17 }}>삭제</Text>
+              <Pressable
+                onPress={confirmDelete}
+                hitSlop={12}
+                accessibilityRole="button"
+                style={{ paddingHorizontal: Spacing.two }}>
+                <Text style={{ color: armed ? '#E5484D' : theme.tint, fontSize: 17 }}>
+                  {armed ? '한 번 더 눌러 삭제' : '삭제'}
+                </Text>
               </Pressable>
             ) : null,
         }}
@@ -83,5 +97,6 @@ const styles = StyleSheet.create({
     padding: Spacing.three,
     fontSize: 17,
     lineHeight: 26,
+    outlineWidth: 0,
   },
 });

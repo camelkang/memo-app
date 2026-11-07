@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import Storage from 'expo-sqlite/kv-store';
+import { readItem, writeItem } from './storage';
 
 export type Memo = {
   id: string;
@@ -16,7 +16,7 @@ const listeners = new Set<() => void>();
 
 function load(): Memo[] {
   try {
-    const raw = Storage.getItemSync(STORAGE_KEY);
+    const raw = readItem(STORAGE_KEY);
     return raw ? (JSON.parse(raw) as Memo[]) : [];
   } catch {
     return [];
@@ -25,7 +25,7 @@ function load(): Memo[] {
 
 function commit(next: Memo[]) {
   memos = next;
-  Storage.setItemSync(STORAGE_KEY, JSON.stringify(next));
+  writeItem(STORAGE_KEY, JSON.stringify(next));
   listeners.forEach((listener) => listener());
 }
 
