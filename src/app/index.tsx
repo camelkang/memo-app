@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDate, groupByDate, splitMemo, useMemos } from '@/lib/memos';
+import { findMatch, matches } from '@/lib/search';
 
 export default function MemoListScreen() {
   const theme = useTheme();
@@ -13,10 +14,8 @@ export default function MemoListScreen() {
   const memos = useMemos();
   const [query, setQuery] = useState('');
 
-  const keyword = query.trim().toLowerCase();
-  const visible = keyword
-    ? memos.filter((memo) => memo.text.toLowerCase().includes(keyword))
-    : memos;
+  const keyword = query.trim();
+  const visible = keyword ? memos.filter((memo) => matches(memo.text, keyword)) : memos;
   const sections = keyword
     ? visible.length > 0
       ? [{ title: `메모 ${visible.length}개를 찾았어요`, data: visible }]
@@ -44,7 +43,7 @@ export default function MemoListScreen() {
             <TextInput
               value={query}
               onChangeText={setQuery}
-              placeholder="메모 검색"
+              placeholder="메모 검색 · 초성도 돼요 (ㄱㅈ)"
               placeholderTextColor={theme.textSecondary}
               clearButtonMode="while-editing"
               accessibilityLabel="메모 검색"
@@ -77,7 +76,7 @@ export default function MemoListScreen() {
               ]}>
               <View style={styles.rowTop}>
                 <Text numberOfLines={1} style={[styles.title, { color: theme.text }]}>
-                  {title}
+                  {highlight(title, keyword, { backgroundColor: theme.tintSoft, color: theme.tintInk })}
                 </Text>
                 <Text style={[styles.when, { color: theme.textSecondary }]}>
                   {formatDate(item.updatedAt)}
@@ -109,6 +108,20 @@ export default function MemoListScreen() {
         <Text style={styles.fabLabel}>새 메모</Text>
       </Pressable>
     </View>
+  );
+}
+
+/** Wraps the part of `text` that matches the search in a highlighted span. */
+function highlight(text: string, keyword: string, style: { backgroundColor: string; color: string }) {
+  const start = keyword ? findMatch(text, keyword) : -1;
+  if (start === -1) return text;
+  const end = start + keyword.length;
+  return (
+    <>
+      {text.slice(0, start)}
+      <Text style={style}>{text.slice(start, end)}</Text>
+      {text.slice(end)}
+    </>
   );
 }
 

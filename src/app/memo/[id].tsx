@@ -70,7 +70,7 @@ export default function MemoEditorScreen() {
                 hitSlop={12}
                 accessibilityRole="button"
                 style={{ paddingHorizontal: Spacing.two }}>
-                <Text style={{ color: armed ? '#E5484D' : theme.tint, fontSize: 17 }}>
+                <Text style={{ color: armed ? theme.danger : theme.textSecondary, fontSize: 16, fontWeight: '500' }}>
                   {armed ? '한 번 더 눌러 삭제' : '삭제'}
                 </Text>
               </Pressable>
@@ -94,9 +94,10 @@ export default function MemoEditorScreen() {
 const styles = StyleSheet.create({
   editor: {
     flex: 1,
-    padding: Spacing.three,
+    paddingHorizontal: Spacing.four,
+    paddingVertical: Spacing.three,
     fontSize: 17,
-    lineHeight: 26,
+    lineHeight: 30,
     outlineWidth: 0,
   },
 });
