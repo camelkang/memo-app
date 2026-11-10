@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "메모",
+    "name": "꾹",
     "slug": "memo-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "memoapp",
+    "scheme": "kkuk",
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon"

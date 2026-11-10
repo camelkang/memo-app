@@ -12,11 +12,13 @@ export default function RootLayout() {
     <ThemeProvider value={scheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack
         screenOptions={{
-          headerTintColor: colors.tint,
+          headerTintColor: colors.text,
+          headerShadowVisible: false,
+          headerStyle: { backgroundColor: colors.background },
           headerTitleStyle: { color: colors.text },
           contentStyle: { backgroundColor: colors.background },
         }}>
-        <Stack.Screen name="index" options={{ title: '메모' }} />
+        <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="memo/[id]" options={{ title: '' }} />
       </Stack>
     </ThemeProvider>

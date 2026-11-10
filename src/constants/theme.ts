@@ -1,21 +1,33 @@
-// App colors for light and dark mode.
+// App colors for light and dark mode. One accent (tint) only.
 
 export const Colors = {
   light: {
-    text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    tint: '#F5A524',
-    textSecondary: '#60646C',
+    text: '#191B20',
+    textBody: '#333840',
+    textSecondary: '#6B7079',
+    background: '#FFFFFF',
+    backgroundGrouped: '#F2F3F6',
+    card: '#FFFFFF',
+    backgroundElement: '#F2F3F6',
+    backgroundSelected: '#E6E8EC',
+    tint: '#5546FF',
+    tintSoft: '#EFEDFF',
+    tintInk: '#2A1FB0',
+    danger: '#D92D20',
   },
   dark: {
-    text: '#ffffff',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    tint: '#F5B544',
-    textSecondary: '#B0B4BA',
+    text: '#F2F3F6',
+    textBody: '#C9CCD3',
+    textSecondary: '#9AA0AB',
+    background: '#0E1014',
+    backgroundGrouped: '#0E1014',
+    card: '#1E2129',
+    backgroundElement: '#22262E',
+    backgroundSelected: '#2C3038',
+    tint: '#6E62FF',
+    tintSoft: '#262A45',
+    tintInk: '#C9C4FF',
+    danger: '#FF6B5E',
   },
 } as const;
 

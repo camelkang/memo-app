@@ -88,3 +88,25 @@ export function formatDate(timestamp: number) {
     day: 'numeric',
   });
 }
+
+export type MemoSection = { title: string; data: Memo[] };
+
+/** Groups memos (already newest first) under 오늘 / 어제 / 이번 주 / 이전. */
+export function groupByDate(list: Memo[]): MemoSection[] {
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+  const day = 24 * 60 * 60 * 1000;
+  const today = startOfToday.getTime();
+  const buckets: MemoSection[] = [
+    { title: '오늘', data: [] },
+    { title: '어제', data: [] },
+    { title: '이번 주', data: [] },
+    { title: '이전', data: [] },
+  ];
+  for (const memo of list) {
+    const index =
+      memo.updatedAt >= today ? 0 : memo.updatedAt >= today - day ? 1 : memo.updatedAt >= today - 6 * day ? 2 : 3;
+    buckets[index].data.push(memo);
+  }
+  return buckets.filter((bucket) => bucket.data.length > 0);
+}
