@@ -17,7 +17,8 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "allowBackup": false
     },
     "web": {
       "output": "single",
@@ -33,7 +34,12 @@
           "imageWidth": 76
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      "expo-secure-store",
+      [
+        "expo-local-authentication",
+        { "faceIDPermission": "메모를 열 때 Face ID로 본인을 확인해요." }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

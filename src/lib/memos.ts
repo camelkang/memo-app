@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from 'react';
-import { readItem, writeItem } from './storage';
+import { loadVault, saveVault } from './vault';
 
 export type Memo = {
   id: string;
@@ -8,30 +8,64 @@ export type Memo = {
   updatedAt: number;
 };
 
-// All memos live as one JSON array under this key, on the phone only.
-const STORAGE_KEY = 'memos.v1';
+export type MemoStatus = 'loading' | 'ready' | 'error';
 
-let memos: Memo[] = load();
+let memos: Memo[] = [];
+let status: MemoStatus = 'loading';
 const listeners = new Set<() => void>();
 
-function load(): Memo[] {
-  try {
-    const raw = readItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as Memo[]) : [];
-  } catch {
-    return [];
+function notify() {
+  listeners.forEach((listener) => listener());
+}
+
+loadVault().then(
+  (json) => {
+    memos = json ? (JSON.parse(json) as Memo[]) : [];
+    status = 'ready';
+    notify();
+  },
+  () => {
+    // Saving is blocked in this state so unreadable memos are never overwritten.
+    status = 'error';
+    notify();
+  },
+);
+
+// Encrypting takes a moment, so saves run one at a time and always write the latest list.
+let saving = false;
+let dirty = false;
+
+async function persist() {
+  if (saving) {
+    dirty = true;
+    return;
   }
+  saving = true;
+  do {
+    dirty = false;
+    try {
+      await saveVault(JSON.stringify(memos));
+    } catch {
+      // The memos stay in memory; the next edit tries to save again.
+    }
+  } while (dirty);
+  saving = false;
 }
 
 function commit(next: Memo[]) {
+  if (status !== 'ready') return;
   memos = next;
-  writeItem(STORAGE_KEY, JSON.stringify(next));
-  listeners.forEach((listener) => listener());
+  notify();
+  persist();
 }
 
 function subscribe(listener: () => void) {
   listeners.add(listener);
   return () => listeners.delete(listener);
+}
+
+export function useMemoStatus(): MemoStatus {
+  return useSyncExternalStore(subscribe, () => status);
 }
 
 /** All memos, newest edit first. */

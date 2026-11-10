@@ -14,3 +14,11 @@ export function writeItem(key: string, value: string) {
     // Storage blocked (e.g. private mode): memos stay in memory for this visit.
   }
 }
+
+export function removeItem(key: string) {
+  try {
+    globalThis.localStorage?.removeItem(key);
+  } catch {
+    // Nothing to remove if storage is blocked.
+  }
+}

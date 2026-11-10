@@ -5,13 +5,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { formatDate, groupByDate, splitMemo, useMemos } from '@/lib/memos';
+import { formatDate, groupByDate, splitMemo, useMemoStatus, useMemos } from '@/lib/memos';
 import { findMatch, matches } from '@/lib/search';
 
 export default function MemoListScreen() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   const memos = useMemos();
+  const status = useMemoStatus();
   const [query, setQuery] = useState('');
 
   const keyword = query.trim();
@@ -52,11 +53,15 @@ export default function MemoListScreen() {
           </View>
         }
         ListEmptyComponent={
-          <Text style={[styles.empty, { color: theme.textSecondary }]}>
-            {keyword
-              ? '찾는 메모가 없어요'
-              : '아직 메모가 없어요.\n아래 새 메모 버튼으로 첫 메모를 적어 보세요.'}
-          </Text>
+          status === 'loading' ? undefined : (
+            <Text style={[styles.empty, { color: theme.textSecondary }]}>
+              {status === 'error'
+                ? '메모를 열지 못했어요.\n이 폰에 저장된 암호 열쇠를 찾을 수 없어요.\n앱을 완전히 닫았다가 다시 열어 주세요.'
+                : keyword
+                  ? '찾는 메모가 없어요'
+                  : '아직 메모가 없어요.\n아래 새 메모 버튼으로 첫 메모를 적어 보세요.'}
+            </Text>
+          )
         }
         renderSectionHeader={({ section }) => (
           <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>{section.title}</Text>
@@ -92,21 +97,23 @@ export default function MemoListScreen() {
         }}
       />
 
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="새 메모"
-        onPress={() => router.push({ pathname: '/memo/[id]', params: { id: 'new' } })}
-        style={({ pressed }) => [
-          styles.fab,
-          {
-            backgroundColor: theme.tint,
-            bottom: insets.bottom + 28,
-            transform: [{ scale: pressed ? 0.97 : 1 }],
-          },
-        ]}>
-        <Text style={styles.fabPlus}>+</Text>
-        <Text style={styles.fabLabel}>새 메모</Text>
-      </Pressable>
+      {status === 'ready' ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="새 메모"
+          onPress={() => router.push({ pathname: '/memo/[id]', params: { id: 'new' } })}
+          style={({ pressed }) => [
+            styles.fab,
+            {
+              backgroundColor: theme.tint,
+              bottom: insets.bottom + 28,
+              transform: [{ scale: pressed ? 0.97 : 1 }],
+            },
+          ]}>
+          <Text style={styles.fabPlus}>+</Text>
+          <Text style={styles.fabLabel}>새 메모</Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 }
