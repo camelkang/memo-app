@@ -14,6 +14,7 @@ export const Colors = {
     tintSoft: '#EFEDFF',
     tintInk: '#2A1FB0',
     danger: '#D92D20',
+    ok: '#0E7A5A',
   },
   dark: {
     text: '#F2F3F6',
@@ -28,6 +29,7 @@ export const Colors = {
     tintSoft: '#262A45',
     tintInk: '#C9C4FF',
     danger: '#FF6B5E',
+    ok: '#4FD1A5',
   },
 } as const;
 

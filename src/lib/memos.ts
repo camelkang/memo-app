@@ -151,3 +151,22 @@ export function memosToText(list: Memo[]) {
     .map((memo) => `${new Date(memo.updatedAt).toLocaleString('ko-KR')}\n${memo.text.trim()}`)
     .join('\n\n────────\n\n');
 }
+
+/**
+ * Adds memos from a backup. Nothing is deleted: a memo that already exists is
+ * replaced only when the backup's copy is newer. Returns how many were added or updated.
+ */
+export function importMemos(incoming: Memo[]): number {
+  if (status !== 'ready') return 0;
+  const byId = new Map(memos.map((memo) => [memo.id, memo]));
+  let changed = 0;
+  for (const memo of incoming) {
+    const current = byId.get(memo.id);
+    if (!current || memo.updatedAt > current.updatedAt) {
+      byId.set(memo.id, memo);
+      changed += 1;
+    }
+  }
+  if (changed > 0) commit([...byId.values()].sort((a, b) => b.updatedAt - a.updatedAt));
+  return changed;
+}

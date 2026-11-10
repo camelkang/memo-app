@@ -1,4 +1,5 @@
 import Constants from 'expo-constants';
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { Platform, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -84,6 +85,36 @@ export default function SettingsScreen() {
                 : canExport
                   ? '내보낸 파일은 암호화되지 않아요. 믿을 수 있는 곳에만 보관하세요.'
                   : '내보낼 메모가 아직 없어요'}
+            </Text>
+          </View>
+        </Pressable>
+      </View>
+
+      <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>백업</Text>
+      <View style={card}>
+        <Pressable
+          onPress={() => router.push({ pathname: '/backup', params: { mode: 'create' } })}
+          disabled={!canExport}
+          accessibilityRole="button"
+          style={({ pressed }) => [styles.row, pressed && { backgroundColor: theme.backgroundSelected }]}>
+          <View style={styles.rowText}>
+            <Text style={[styles.label, { color: canExport ? theme.tint : theme.textSecondary }]}>
+              백업 만들기
+            </Text>
+            <Text style={[styles.hint, { color: theme.textSecondary }]}>
+              {canExport ? '비밀번호로 잠근 파일로 저장해요' : '백업할 메모가 아직 없어요'}
+            </Text>
+          </View>
+        </Pressable>
+        <View style={[styles.divider, { backgroundColor: theme.backgroundElement }]} />
+        <Pressable
+          onPress={() => router.push({ pathname: '/backup', params: { mode: 'restore' } })}
+          accessibilityRole="button"
+          style={({ pressed }) => [styles.row, pressed && { backgroundColor: theme.backgroundSelected }]}>
+          <View style={styles.rowText}>
+            <Text style={[styles.label, { color: theme.tint }]}>백업에서 가져오기</Text>
+            <Text style={[styles.hint, { color: theme.textSecondary }]}>
+              지금 있는 메모는 그대로 두고 더해요
             </Text>
           </View>
         </Pressable>

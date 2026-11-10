@@ -36,6 +36,13 @@ export default function RootLayout() {
           <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen name="memo/[id]" options={{ title: '' }} />
           <Stack.Screen
+            name="backup"
+            options={{
+              headerStyle: { backgroundColor: colors.backgroundGrouped },
+              contentStyle: { backgroundColor: colors.backgroundGrouped },
+            }}
+          />
+          <Stack.Screen
             name="settings"
             options={{
               title: '설정',
