@@ -38,8 +38,11 @@
       "expo-secure-store",
       [
         "expo-local-authentication",
-        { "faceIDPermission": "메모를 열 때 Face ID로 본인을 확인해요." }
-      ]
+        {
+          "faceIDPermission": "메모를 열 때 Face ID로 본인을 확인해요."
+        }
+      ],
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": true,

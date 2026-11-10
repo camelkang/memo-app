@@ -144,3 +144,10 @@ export function groupByDate(list: Memo[]): MemoSection[] {
   }
   return buckets.filter((bucket) => bucket.data.length > 0);
 }
+
+/** All memos as plain text, for exporting out of the app. */
+export function memosToText(list: Memo[]) {
+  return list
+    .map((memo) => `${new Date(memo.updatedAt).toLocaleString('ko-KR')}\n${memo.text.trim()}`)
+    .join('\n\n────────\n\n');
+}

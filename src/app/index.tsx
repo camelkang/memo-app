@@ -38,9 +38,17 @@ export default function MemoListScreen() {
         }}
         ListHeaderComponent={
           <View style={styles.header}>
-            <Text accessibilityRole="header" style={[styles.screenTitle, { color: theme.text }]}>
-              메모
-            </Text>
+            <View style={styles.titleRow}>
+              <Text accessibilityRole="header" style={[styles.screenTitle, { color: theme.text }]}>
+                메모
+              </Text>
+              <Pressable
+                onPress={() => router.push('/settings')}
+                accessibilityRole="button"
+                style={styles.settingsButton}>
+                <Text style={[styles.settingsLabel, { color: theme.textSecondary }]}>설정</Text>
+              </Pressable>
+            </View>
             <TextInput
               value={query}
               onChangeText={setQuery}
@@ -135,6 +143,9 @@ function highlight(text: string, keyword: string, style: { backgroundColor: stri
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { gap: Spacing.three, marginBottom: Spacing.two },
+  titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  settingsButton: { minWidth: 48, height: 48, paddingHorizontal: Spacing.two, alignItems: 'center', justifyContent: 'center' },
+  settingsLabel: { fontSize: 16, fontWeight: '600' },
   screenTitle: { fontSize: 28, fontWeight: '800', letterSpacing: -0.8, marginHorizontal: Spacing.two },
   search: {
     height: 52,

@@ -1,9 +1,11 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
 import { Stack } from 'expo-router/stack';
+import { useEffect } from 'react';
 import { useColorScheme, View } from 'react-native';
 
 import { LockScreen } from '@/components/lock-screen';
 import { Colors } from '@/constants/theme';
+import { clearExportedFile } from '@/lib/export';
 import { useAppLock } from '@/lib/lock';
 
 export default function RootLayout() {
@@ -11,6 +13,10 @@ export default function RootLayout() {
   const colors = Colors[scheme];
   const lock = useAppLock();
   const locked = lock.state !== 'unlocked';
+
+  useEffect(() => {
+    clearExportedFile();
+  }, []);
 
   return (
     <ThemeProvider value={scheme === 'dark' ? DarkTheme : DefaultTheme}>
@@ -29,6 +35,14 @@ export default function RootLayout() {
           }}>
           <Stack.Screen name="index" options={{ headerShown: false }} />
           <Stack.Screen name="memo/[id]" options={{ title: '' }} />
+          <Stack.Screen
+            name="settings"
+            options={{
+              title: '설정',
+              headerStyle: { backgroundColor: colors.backgroundGrouped },
+              contentStyle: { backgroundColor: colors.backgroundGrouped },
+            }}
+          />
         </Stack>
       </View>
       {locked ? (
