@@ -51,3 +51,25 @@ export function continueChecklist(previous: string, next: string, cursor: number
   const insertAt = cursor + 1;
   return { text: `${next.slice(0, insertAt)}${UNCHECKED} ${next.slice(insertAt)}`, cursor: insertAt + 2 };
 }
+
+/** A checklist box on screen: where its line starts in the text, and how far down it is drawn. */
+export type CheckBox = { offset: number; y: number; checked: boolean };
+
+/**
+ * Finds every checklist box and its vertical position, given how the text was
+ * laid out on screen (one entry per visual line, wrapped lines included).
+ */
+export function findCheckBoxes(text: string, visualLines: { text: string; y: number }[]): CheckBox[] {
+  const boxes: CheckBox[] = [];
+  let position = 0;
+  for (const line of visualLines) {
+    const startsLine = position === 0 || text[position - 1] === '\n';
+    if (startsLine) {
+      const box = boxOf(text.slice(position, position + 2));
+      if (box !== null) boxes.push({ offset: position, y: line.y, checked: box === CHECKED });
+    }
+    position += line.text.replace(/\n$/, '').length;
+    if (text[position] === '\n') position += 1;
+  }
+  return boxes;
+}

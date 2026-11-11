@@ -5,7 +5,7 @@ import { Alert, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'r
 
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { UNCHECKED, continueChecklist, toggleCheck } from '@/lib/checklist';
+import { UNCHECKED, continueChecklist, findCheckBoxes, toggleCheck } from '@/lib/checklist';
 import { useProStatus } from '@/lib/pro';
 import { createMemo, deleteMemo, formatDate, updateMemo, useMemoById } from '@/lib/memos';
 
@@ -76,6 +76,21 @@ export default function MemoEditorScreen() {
     save(edit.text);
   }
 
+  // Tapping a box in the text flips it. The boxes are found by laying the same
+  // text out in a hidden copy, then placing a tap target over each one.
+  const [layout, setLayout] = useState<{ text: string; y: number }[]>([]);
+  const [scrollY, setScrollY] = useState(0);
+  const visualLines =
+    Platform.OS === 'web'
+      ? // The web preview can't measure wrapped lines, so it assumes none wrap.
+        text.split('\n').map((line, index) => ({ text: `${line}\n`, y: index * LINE_HEIGHT }))
+      : layout;
+  const boxes = findCheckBoxes(text, visualLines);
+
+  function onTapBox(offset: number) {
+    save(toggleCheck(text, offset).text);
+  }
+
   function save(next: string) {
     setText(next);
     setArmed(false);
@@ -135,8 +150,17 @@ export default function MemoEditorScreen() {
           ),
         }}
       />
+      <View style={styles.container}>
+      <Text
+        aria-hidden
+        importantForAccessibility="no-hide-descendants"
+        onTextLayout={(event) => setLayout(event.nativeEvent.lines.map((line) => ({ text: line.text, y: line.y })))}
+        style={[styles.editor, styles.mirror]}>
+        {text}
+      </Text>
       <TextInput
         ref={input}
+        onScroll={(event) => setScrollY(event.nativeEvent.contentOffset.y)}
         value={text}
         onChangeText={onChangeText}
         selection={forcedCursor === undefined ? undefined : { start: forcedCursor, end: forcedCursor }}
@@ -152,18 +176,38 @@ export default function MemoEditorScreen() {
         textAlignVertical="top"
         style={[styles.editor, { color: theme.text }]}
       />
+      <View style={styles.boxes} pointerEvents="box-none">
+        {boxes.map((box) => (
+          <Pressable
+            key={box.offset}
+            onPress={() => onTapBox(box.offset)}
+            accessibilityRole="checkbox"
+            accessibilityState={{ checked: box.checked }}
+            style={[styles.box, { top: Spacing.three + box.y - scrollY }]}
+          />
+        ))}
+      </View>
+      </View>
     </>
   );
 }
 
+const LINE_HEIGHT = 30;
+
 const styles = StyleSheet.create({
+  container: { flex: 1 },
+  // Same size and wrapping as the editor, but invisible and untouchable.
+  mirror: { position: 'absolute', top: 0, left: 0, right: 0, flex: 0, opacity: 0, pointerEvents: 'none' },
+  boxes: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden' },
+  // Covers the box character and the margin to its left.
+  box: { position: 'absolute', left: 0, width: Spacing.four + 30, height: LINE_HEIGHT },
   actions: { flexDirection: 'row', alignItems: 'center', gap: Spacing.two },
   editor: {
     flex: 1,
     paddingHorizontal: Spacing.four,
     paddingVertical: Spacing.three,
     fontSize: 17,
-    lineHeight: 30,
+    lineHeight: LINE_HEIGHT,
     outlineWidth: 0,
   },
 });
