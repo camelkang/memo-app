@@ -47,6 +47,14 @@ export default function RootLayout() {
             }}
           />
           <Stack.Screen
+            name="pro"
+            options={{
+              title: '',
+              headerStyle: { backgroundColor: colors.backgroundGrouped },
+              contentStyle: { backgroundColor: colors.backgroundGrouped },
+            }}
+          />
+          <Stack.Screen
             name="settings"
             options={{
               title: '설정',

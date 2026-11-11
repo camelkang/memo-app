@@ -5,6 +5,7 @@ import { Alert, Platform, Pressable, StyleSheet, Text, TextInput } from 'react-n
 
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { useProStatus } from '@/lib/pro';
 import { createMemo, deleteMemo, formatDate, updateMemo, useMemoById } from '@/lib/memos';
 
 export default function MemoEditorScreen() {
@@ -29,12 +30,19 @@ export default function MemoEditorScreen() {
     };
   }, []);
 
+  // Opened for a new memo (e.g. from the home-screen shortcut) with the free limit used up.
+  const { full } = useProStatus();
+  const blocked = !id && full;
+  useEffect(() => {
+    if (blocked) router.replace('/pro');
+  }, [blocked]);
+
   function onChangeText(next: string) {
     setText(next);
     setArmed(false);
     if (id) {
       updateMemo(id, next);
-    } else if (next.trim()) {
+    } else if (next.trim() && !blocked) {
       setId(createMemo(next).id);
     }
   }

@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { formatDate, groupByDate, splitMemo, useMemoStatus, useMemos } from '@/lib/memos';
+import { FREE_LIMIT, useProStatus } from '@/lib/pro';
 import { findMatch, matches } from '@/lib/search';
 
 export default function MemoListScreen() {
@@ -13,6 +14,7 @@ export default function MemoListScreen() {
   const insets = useSafeAreaInsets();
   const memos = useMemos();
   const status = useMemoStatus();
+  const plan = useProStatus();
   const [query, setQuery] = useState('');
 
   const keyword = query.trim();
@@ -58,6 +60,17 @@ export default function MemoListScreen() {
               accessibilityLabel="메모 검색"
               style={[styles.search, { backgroundColor: theme.card, color: theme.text }]}
             />
+            {plan.nearLimit ? (
+              <Pressable
+                onPress={() => router.push('/pro')}
+                accessibilityRole="button"
+                style={[styles.banner, { backgroundColor: theme.tintSoft }]}>
+                <Text style={[styles.bannerText, { color: theme.tintInk }]}>
+                  무료 메모 {FREE_LIMIT}개 중 {plan.count}개를 썼어요
+                </Text>
+                <Text style={[styles.bannerAction, { color: theme.tintInk }]}>Pro 보기</Text>
+              </Pressable>
+            ) : null}
           </View>
         }
         ListEmptyComponent={
@@ -109,7 +122,9 @@ export default function MemoListScreen() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="새 메모"
-          onPress={() => router.push({ pathname: '/memo/[id]', params: { id: 'new' } })}
+          onPress={() =>
+          plan.full ? router.push('/pro') : router.push({ pathname: '/memo/[id]', params: { id: 'new' } })
+        }
           style={({ pressed }) => [
             styles.fab,
             {
@@ -146,6 +161,17 @@ const styles = StyleSheet.create({
   titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   settingsButton: { minWidth: 48, height: 48, paddingHorizontal: Spacing.two, alignItems: 'center', justifyContent: 'center' },
   settingsLabel: { fontSize: 16, fontWeight: '600' },
+  banner: {
+    minHeight: 48,
+    borderRadius: 16,
+    paddingHorizontal: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  bannerText: { flex: 1, fontSize: 15, fontWeight: '600' },
+  bannerAction: { fontSize: 15, fontWeight: '800' },
   screenTitle: { fontSize: 28, fontWeight: '800', letterSpacing: -0.8, marginHorizontal: Spacing.two },
   search: {
     height: 52,

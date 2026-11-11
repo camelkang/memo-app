@@ -5,10 +5,12 @@ import { readItem, writeItem } from './storage';
 export type Settings = {
   /** Ask for fingerprint, face or the phone's PIN when the app opens. */
   lockEnabled: boolean;
+  /** Bought Pro: no limit on the number of memos. */
+  pro: boolean;
 };
 
 const STORAGE_KEY = 'settings.v1';
-const DEFAULTS: Settings = { lockEnabled: true };
+const DEFAULTS: Settings = { lockEnabled: true, pro: false };
 
 let settings: Settings = load();
 const listeners = new Set<() => void>();

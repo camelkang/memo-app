@@ -9,6 +9,7 @@ import { useTheme } from '@/hooks/use-theme';
 import { exportMemos } from '@/lib/export';
 import { confirmIdentity } from '@/lib/lock';
 import { useMemos } from '@/lib/memos';
+import { FREE_LIMIT } from '@/lib/pro';
 import { updateSettings, useSettings } from '@/lib/settings';
 
 export default function SettingsScreen() {
@@ -67,8 +68,22 @@ export default function SettingsScreen() {
       <View style={card}>
         <View style={styles.row}>
           <Text style={[styles.label, { color: theme.text }]}>저장된 메모</Text>
-          <Text style={[styles.value, { color: theme.textSecondary }]}>{memos.length}개</Text>
+          <Text style={[styles.value, { color: theme.textSecondary }]}>
+            {settings.pro ? `${memos.length}개` : `${memos.length} / ${FREE_LIMIT}개`}
+          </Text>
         </View>
+        <View style={[styles.divider, { backgroundColor: theme.backgroundElement }]} />
+        <Pressable
+          onPress={() => router.push('/pro')}
+          accessibilityRole="button"
+          style={({ pressed }) => [styles.row, pressed && { backgroundColor: theme.backgroundSelected }]}>
+          <View style={styles.rowText}>
+            <Text style={[styles.label, { color: theme.tint }]}>꾹 Pro</Text>
+            <Text style={[styles.hint, { color: theme.textSecondary }]}>
+              {settings.pro ? '쓰는 중이에요. 메모 개수 제한이 없어요.' : '한 번 사면 메모를 개수 제한 없이 써요'}
+            </Text>
+          </View>
+        </Pressable>
         <View style={[styles.divider, { backgroundColor: theme.backgroundElement }]} />
         <Pressable
           onPress={onExport}
