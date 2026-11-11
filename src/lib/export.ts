@@ -2,6 +2,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 
+import { withoutLocking } from './lock';
 import { type Memo, memosToText } from './memos';
 
 const TEXT_EXPORT_NAME = 'kkuk-memos.txt';
@@ -11,7 +12,7 @@ export async function shareTextFile(name: string, content: string, mimeType: str
   const file = new File(Paths.cache, name);
   file.create({ overwrite: true });
   await file.write(content);
-  await Sharing.shareAsync(file.uri, { mimeType, dialogTitle: name });
+  await withoutLocking(() => Sharing.shareAsync(file.uri, { mimeType, dialogTitle: name }));
 }
 
 /** Writes every memo to one text file and opens the share sheet for it. */
@@ -31,7 +32,9 @@ export function clearExportedFile() {
 
 /** Lets the user pick a file and returns its text, or null if they cancel. */
 export async function pickTextFile(): Promise<string | null> {
-  const result = await DocumentPicker.getDocumentAsync({ type: '*/*', copyToCacheDirectory: true });
+  const result = await withoutLocking(() =>
+    DocumentPicker.getDocumentAsync({ type: '*/*', copyToCacheDirectory: true }),
+  );
   if (result.canceled) return null;
   const file = new File(result.assets[0].uri);
   try {

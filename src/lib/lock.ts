@@ -6,6 +6,23 @@ import { useSettings } from './settings';
 
 export type LockState = 'checking' | 'locked' | 'unlocked';
 
+// True while a system screen the app opened itself (share sheet, file picker) is showing.
+let systemScreenOpen = false;
+const SYSTEM_SCREEN_LIMIT = 2 * 60 * 1000;
+
+/** Runs something that opens a system screen without locking the app when it comes back. */
+export async function withoutLocking<T>(action: () => Promise<T>): Promise<T> {
+  systemScreenOpen = true;
+  try {
+    return await action();
+  } finally {
+    // Wait for the app to be in front again before locking as usual.
+    setTimeout(() => {
+      systemScreenOpen = false;
+    }, 1000);
+  }
+}
+
 /**
  * Locks the app on launch and whenever it goes to the background.
  * Unlocking uses the phone's fingerprint/face, falling back to its PIN or pattern.
@@ -62,8 +79,17 @@ export function useAppLock() {
   }, [unlock]);
 
   useEffect(() => {
+    let leftAt = 0;
     const subscription = AppState.addEventListener('change', (next) => {
-      if (next === 'background' && canLock.current && enabled.current) setState('locked');
+      if (!canLock.current || !enabled.current) return;
+      if (next === 'background') {
+        leftAt = Date.now();
+        // A share sheet or file picker the app opened itself is not "leaving the app".
+        if (!systemScreenOpen) setState('locked');
+      } else if (next === 'active' && systemScreenOpen && leftAt && Date.now() - leftAt > SYSTEM_SCREEN_LIMIT) {
+        // Still lock if the user stayed away for a long time, e.g. in the app they shared to.
+        setState('locked');
+      }
     });
     return () => subscription.remove();
   }, []);
