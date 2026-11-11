@@ -6,6 +6,7 @@ import { useColorScheme, View } from 'react-native';
 import { LockScreen } from '@/components/lock-screen';
 import { Colors } from '@/constants/theme';
 import { clearExportedFile } from '@/lib/export';
+import { useSharedTextAsMemo } from '@/lib/incoming';
 import { useAppLock } from '@/lib/lock';
 
 export default function RootLayout() {
@@ -13,6 +14,7 @@ export default function RootLayout() {
   const colors = Colors[scheme];
   const lock = useAppLock();
   const locked = lock.state !== 'unlocked';
+  useSharedTextAsMemo();
 
   useEffect(() => {
     clearExportedFile();

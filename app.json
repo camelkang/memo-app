@@ -43,7 +43,10 @@
           "faceIDPermission": "메모를 열 때 Face ID로 본인을 확인해요."
         }
       ],
-      "expo-sharing"
+      [
+        "expo-sharing",
+        { "android": { "enabled": true, "singleShareMimeTypes": ["text/plain"] } }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
