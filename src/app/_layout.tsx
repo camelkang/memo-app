@@ -8,6 +8,7 @@ import { Colors } from '@/constants/theme';
 import { clearExportedFile } from '@/lib/export';
 import { useSharedTextAsMemo } from '@/lib/incoming';
 import { useAppLock } from '@/lib/lock';
+import { useNewMemoShortcut } from '@/lib/shortcuts';
 
 export default function RootLayout() {
   const scheme = useColorScheme() === 'dark' ? 'dark' : 'light';
@@ -15,6 +16,7 @@ export default function RootLayout() {
   const lock = useAppLock();
   const locked = lock.state !== 'unlocked';
   useSharedTextAsMemo();
+  useNewMemoShortcut();
 
   useEffect(() => {
     clearExportedFile();
