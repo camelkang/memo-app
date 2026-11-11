@@ -3,10 +3,13 @@ import { Stack } from 'expo-router/stack';
 import { type ComponentRef, useEffect, useRef, useState } from 'react';
 import { Alert, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { MemoReader } from '@/components/memo-reader';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { UNCHECKED, continueChecklist, findCheckBoxes, toggleCheck } from '@/lib/checklist';
 import { useProStatus } from '@/lib/pro';
+import { findSensitive } from '@/lib/sensitive';
+import { useSettings } from '@/lib/settings';
 import { createMemo, deleteMemo, formatDate, updateMemo, useMemoById } from '@/lib/memos';
 
 export default function MemoEditorScreen() {
@@ -16,6 +19,13 @@ export default function MemoEditorScreen() {
   const [id, setId] = useState(params.id === 'new' ? undefined : params.id);
   const memo = useMemoById(id);
   const [text, setText] = useState(memo?.text ?? '');
+  // A memo with something to hide opens for reading, with those parts covered.
+  // Tapping the text (or 편집) switches to the editor, which shows everything.
+  const { maskSensitive } = useSettings();
+  const [reading, setReading] = useState(
+    () => maskSensitive && memo !== undefined && findSensitive(memo.text).length > 0,
+  );
+  const [startedReading] = useState(reading);
   // Web has no native dialog, so delete asks for a second tap instead.
   const [armed, setArmed] = useState(false);
 
@@ -127,14 +137,24 @@ export default function MemoEditorScreen() {
           title: memo ? formatDate(memo.updatedAt) : '',
           headerRight: () => (
             <View style={styles.actions}>
-              <Pressable
-                onPress={onToggleCheck}
-                hitSlop={12}
-                accessibilityRole="button"
-                accessibilityLabel="체크 항목으로 바꾸기, 또는 완료 표시"
-                style={{ paddingHorizontal: Spacing.two }}>
-                <Text style={{ color: theme.tint, fontSize: 16, fontWeight: '600' }}>{UNCHECKED} 체크</Text>
-              </Pressable>
+              {reading ? (
+                <Pressable
+                  onPress={() => setReading(false)}
+                  hitSlop={12}
+                  accessibilityRole="button"
+                  style={{ paddingHorizontal: Spacing.two }}>
+                  <Text style={{ color: theme.tint, fontSize: 16, fontWeight: '600' }}>편집</Text>
+                </Pressable>
+              ) : (
+                <Pressable
+                  onPress={onToggleCheck}
+                  hitSlop={12}
+                  accessibilityRole="button"
+                  accessibilityLabel="체크 항목으로 바꾸기, 또는 완료 표시"
+                  style={{ paddingHorizontal: Spacing.two }}>
+                  <Text style={{ color: theme.tint, fontSize: 16, fontWeight: '600' }}>{UNCHECKED} 체크</Text>
+                </Pressable>
+              )}
               {id ? (
               <Pressable
                 onPress={confirmDelete}
@@ -150,6 +170,9 @@ export default function MemoEditorScreen() {
           ),
         }}
       />
+      {reading ? (
+        <MemoReader text={text} onEdit={() => setReading(false)} onToggleCheck={onTapBox} />
+      ) : (
       <View style={styles.container}>
       <Text
         aria-hidden
@@ -170,7 +193,7 @@ export default function MemoEditorScreen() {
           if (forcedCursor !== undefined) setForcedCursor(undefined);
         }}
         multiline
-        autoFocus={!id}
+        autoFocus={!id || startedReading}
         placeholder="메모를 입력하세요"
         placeholderTextColor={theme.textSecondary}
         textAlignVertical="top"
@@ -188,6 +211,7 @@ export default function MemoEditorScreen() {
         ))}
       </View>
       </View>
+      )}
     </>
   );
 }

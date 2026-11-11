@@ -8,6 +8,8 @@ import { useTheme } from '@/hooks/use-theme';
 import { formatDate, groupByDate, splitMemo, useMemoStatus, useMemos } from '@/lib/memos';
 import { FREE_LIMIT, useProStatus } from '@/lib/pro';
 import { findMatch, matches } from '@/lib/search';
+import { maskText } from '@/lib/sensitive';
+import { useSettings } from '@/lib/settings';
 
 export default function MemoListScreen() {
   const theme = useTheme();
@@ -15,6 +17,7 @@ export default function MemoListScreen() {
   const memos = useMemos();
   const status = useMemoStatus();
   const plan = useProStatus();
+  const { maskSensitive } = useSettings();
   const [query, setQuery] = useState('');
 
   const keyword = query.trim();
@@ -88,7 +91,7 @@ export default function MemoListScreen() {
           <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>{section.title}</Text>
         )}
         renderItem={({ item, index, section }) => {
-          const { title, preview } = splitMemo(item.text);
+          const { title, preview } = splitMemo(maskSensitive ? maskText(item.text) : item.text);
           const first = index === 0;
           const last = index === section.data.length - 1;
           return (

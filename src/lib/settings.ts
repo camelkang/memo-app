@@ -7,10 +7,12 @@ export type Settings = {
   lockEnabled: boolean;
   /** Bought Pro: no limit on the number of memos. */
   pro: boolean;
+  /** Hide account numbers, card numbers and passwords until tapped. */
+  maskSensitive: boolean;
 };
 
 const STORAGE_KEY = 'settings.v1';
-const DEFAULTS: Settings = { lockEnabled: true, pro: false };
+const DEFAULTS: Settings = { lockEnabled: true, pro: false, maskSensitive: true };
 
 let settings: Settings = load();
 const listeners = new Set<() => void>();

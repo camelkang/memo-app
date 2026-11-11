@@ -64,6 +64,23 @@ export default function SettingsScreen() {
         </View>
       </View>
 
+      <View style={[card, styles.cardGap]}>
+        <View style={styles.row}>
+          <View style={styles.rowText}>
+            <Text style={[styles.label, { color: theme.text }]}>민감 정보 가리기</Text>
+            <Text style={[styles.hint, { color: theme.textSecondary }]}>
+              계좌번호, 카드번호, 비밀번호를 가려 두고 누를 때만 보여 줘요
+            </Text>
+          </View>
+          <Switch
+            value={settings.maskSensitive}
+            onValueChange={(next) => updateSettings({ maskSensitive: next })}
+            trackColor={{ true: theme.tint, false: theme.backgroundSelected }}
+            accessibilityLabel="민감 정보 가리기"
+          />
+        </View>
+      </View>
+
       <Text style={[styles.sectionTitle, { color: theme.textSecondary }]}>내 메모</Text>
       <View style={card}>
         <View style={styles.row}>
@@ -166,6 +183,7 @@ const styles = StyleSheet.create({
     marginHorizontal: Spacing.two,
   },
   card: { borderRadius: 20, overflow: 'hidden' },
+  cardGap: { marginTop: Spacing.two },
   row: {
     minHeight: 60,
     paddingHorizontal: 20,
