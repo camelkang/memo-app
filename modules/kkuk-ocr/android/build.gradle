@@ -1,0 +1,21 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'com.camelkang.kkuk'
+version = '1.0.0'
+
+android {
+  namespace "expo.modules.kkukocr"
+  defaultConfig {
+    versionCode 1
+    versionName '1.0.0'
+  }
+}
+
+dependencies {
+  // On-device text recognition. The Korean model also reads Latin letters and digits,
+  // and it is bundled in the app, so nothing is downloaded or sent anywhere.
+  implementation 'com.google.mlkit:text-recognition-korean:16.0.1'
+}

@@ -1,4 +1,4 @@
-import TextRecognition, { TextRecognitionScript } from '@react-native-ml-kit/text-recognition';
+import { requireNativeModule } from 'expo';
 import { File } from 'expo-file-system';
 import * as ImagePicker from 'expo-image-picker';
 
@@ -6,7 +6,13 @@ import { withoutLocking } from './lock';
 
 export const ocrAvailable = true;
 
-export type OcrResult = { text: string } | { error: 'canceled' | 'no-permission' | 'no-text' | 'failed' };
+// The app's own small module (modules/kkuk-ocr) around the phone's on-device recognizer.
+type OcrModule = { recognizeAsync(uri: string): Promise<string> };
+
+export type OcrResult =
+  | { text: string }
+  | { error: 'canceled' | 'no-permission' | 'no-text' }
+  | { error: 'failed'; detail: string };
 
 /**
  * Takes or picks a photo and reads the text in it. The reading happens on the
@@ -26,9 +32,8 @@ export async function readTextFromPhoto(source: 'camera' | 'library'): Promise<O
 
     const uri = picked.assets[0].uri;
     try {
-      // The Korean model also reads Latin letters and digits.
-      const result = await TextRecognition.recognize(uri, TextRecognitionScript.KOREAN);
-      const text = result.text.trim();
+      const recognizer = requireNativeModule<OcrModule>('KkukOcr');
+      const text = (await recognizer.recognizeAsync(uri)).trim();
       return text ? { text } : { error: 'no-text' };
     } finally {
       try {
@@ -37,7 +42,7 @@ export async function readTextFromPhoto(source: 'camera' | 'library'): Promise<O
         // The picker's temporary copy is cleared by the system later.
       }
     }
-  } catch {
-    return { error: 'failed' };
+  } catch (error) {
+    return { error: 'failed', detail: error instanceof Error ? error.message : String(error) };
   }
 }

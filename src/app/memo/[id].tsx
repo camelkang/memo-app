@@ -116,7 +116,8 @@ export default function MemoEditorScreen() {
         canceled: null,
         'no-permission': '카메라를 쓸 수 없어요. 폰 설정에서 꾹의 카메라 권한을 켜 주세요.',
         'no-text': '사진에서 글자를 찾지 못했어요.',
-        failed: '사진을 읽지 못했어요. 다시 해 주세요.',
+        // The reason is shown for now so problems in test builds can be tracked down.
+        failed: `사진을 읽지 못했어요. 다시 해 주세요.${result.error === 'failed' ? `\n(${result.detail})` : ''}`,
       };
       setPhotoNotice(messages[result.error]);
       return;
