@@ -19,6 +19,7 @@ export type OcrResult =
  * phone itself; the photo is not sent anywhere and is not kept afterwards.
  */
 export async function readTextFromPhoto(source: 'camera' | 'library'): Promise<OcrResult> {
+  let stage = 'pick';
   try {
     if (source === 'camera') {
       const permission = await ImagePicker.requestCameraPermissionsAsync();
@@ -31,6 +32,7 @@ export async function readTextFromPhoto(source: 'camera' | 'library'): Promise<O
     if (picked.canceled) return { error: 'canceled' };
 
     const uri = picked.assets[0].uri;
+    stage = 'read';
     try {
       const recognizer = requireNativeModule<OcrModule>('KkukOcr');
       const text = (await recognizer.recognizeAsync(uri)).trim();
@@ -43,6 +45,6 @@ export async function readTextFromPhoto(source: 'camera' | 'library'): Promise<O
       }
     }
   } catch (error) {
-    return { error: 'failed', detail: error instanceof Error ? error.message : String(error) };
+    return { error: 'failed', detail: `${stage}: ${error instanceof Error ? error.message : String(error)}` };
   }
 }
