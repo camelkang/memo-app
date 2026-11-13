@@ -7,6 +7,7 @@ import { MemoReader } from '@/components/memo-reader';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { UNCHECKED, continueChecklist, findCheckBoxes, toggleCheck } from '@/lib/checklist';
+import { ocrAvailable, readTextFromPhoto } from '@/lib/ocr';
 import { useProStatus } from '@/lib/pro';
 import { findSensitive } from '@/lib/sensitive';
 import { useSettings } from '@/lib/settings';
@@ -101,6 +102,42 @@ export default function MemoEditorScreen() {
     save(toggleCheck(text, offset).text);
   }
 
+  // Reading text out of a photo and adding it where the cursor is.
+  const [photoNotice, setPhotoNotice] = useState<string | null>(null);
+  const [readingPhoto, setReadingPhoto] = useState(false);
+
+  async function addTextFromPhoto(source: 'camera' | 'library') {
+    setPhotoNotice(null);
+    setReadingPhoto(true);
+    const result = await readTextFromPhoto(source);
+    setReadingPhoto(false);
+    if ('error' in result) {
+      const messages = {
+        canceled: null,
+        'no-permission': '카메라를 쓸 수 없어요. 폰 설정에서 꾹의 카메라 권한을 켜 주세요.',
+        'no-text': '사진에서 글자를 찾지 못했어요.',
+        failed: '사진을 읽지 못했어요. 다시 해 주세요.',
+      };
+      setPhotoNotice(messages[result.error]);
+      return;
+    }
+    const at = Math.min(cursor.current, text.length);
+    const before = text.slice(0, at);
+    const after = text.slice(at);
+    const lead = before && !before.endsWith('\n') ? '\n' : '';
+    const tail = after && !after.startsWith('\n') ? '\n' : '';
+    moveCursor(at + lead.length + result.text.length);
+    save(before + lead + result.text + tail + after);
+  }
+
+  function onPhotoPress() {
+    Alert.alert('사진에서 글자 가져오기', '글자는 폰 안에서 읽어요. 사진은 어디로도 보내지 않아요.', [
+      { text: '카메라로 찍기', onPress: () => addTextFromPhoto('camera') },
+      { text: '사진 고르기', onPress: () => addTextFromPhoto('library') },
+      { text: '취소', style: 'cancel' },
+    ]);
+  }
+
   function save(next: string) {
     setText(next);
     setArmed(false);
@@ -145,16 +182,7 @@ export default function MemoEditorScreen() {
                   style={{ paddingHorizontal: Spacing.two }}>
                   <Text style={{ color: theme.tint, fontSize: 16, fontWeight: '600' }}>편집</Text>
                 </Pressable>
-              ) : (
-                <Pressable
-                  onPress={onToggleCheck}
-                  hitSlop={12}
-                  accessibilityRole="button"
-                  accessibilityLabel="체크 항목으로 바꾸기, 또는 완료 표시"
-                  style={{ paddingHorizontal: Spacing.two }}>
-                  <Text style={{ color: theme.tint, fontSize: 16, fontWeight: '600' }}>{UNCHECKED} 체크</Text>
-                </Pressable>
-              )}
+              ) : null}
               {id ? (
               <Pressable
                 onPress={confirmDelete}
@@ -173,6 +201,32 @@ export default function MemoEditorScreen() {
       {reading ? (
         <MemoReader text={text} onEdit={() => setReading(false)} onToggleCheck={onTapBox} />
       ) : (
+      <View style={styles.container}>
+      <View style={styles.tools}>
+        <Pressable
+          onPress={onToggleCheck}
+          accessibilityRole="button"
+          accessibilityLabel="체크 항목으로 바꾸기, 또는 완료 표시"
+          style={[styles.tool, { backgroundColor: theme.backgroundElement }]}>
+          <Text style={[styles.toolLabel, { color: theme.tintInk }]}>{UNCHECKED} 체크</Text>
+        </Pressable>
+        {ocrAvailable ? (
+          <Pressable
+            onPress={onPhotoPress}
+            disabled={readingPhoto}
+            accessibilityRole="button"
+            style={[styles.tool, { backgroundColor: theme.backgroundElement }]}>
+            <Text style={[styles.toolLabel, { color: theme.tintInk }]}>
+              {readingPhoto ? '글자 읽는 중…' : '사진에서 글자'}
+            </Text>
+          </Pressable>
+        ) : null}
+      </View>
+      {photoNotice ? (
+        <Text accessibilityLiveRegion="polite" style={[styles.notice, { color: theme.danger }]}>
+          {photoNotice}
+        </Text>
+      ) : null}
       <View style={styles.container}>
       <Text
         aria-hidden
@@ -211,6 +265,7 @@ export default function MemoEditorScreen() {
         ))}
       </View>
       </View>
+      </View>
       )}
     </>
   );
@@ -220,6 +275,10 @@ const LINE_HEIGHT = 30;
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  tools: { flexDirection: 'row', gap: Spacing.two, paddingHorizontal: Spacing.four, paddingTop: Spacing.two },
+  tool: { height: 44, paddingHorizontal: 14, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  toolLabel: { fontSize: 15, fontWeight: '600' },
+  notice: { fontSize: 14, lineHeight: 20, paddingHorizontal: Spacing.four, paddingTop: Spacing.two },
   // Same size and wrapping as the editor, but invisible and untouchable.
   mirror: { position: 'absolute', top: 0, left: 0, right: 0, flex: 0, opacity: 0, pointerEvents: 'none' },
   boxes: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden' },
